@@ -45,8 +45,16 @@ func backend() *balenaBackend {
 				"role/*",
 			},
 		},
-		Paths:       framework.PathAppend(),
-		Secrets:     []*framework.Secret{},
+		Paths: framework.PathAppend(
+			pathRole(&b),
+			[]*framework.Path{
+				pathConfig(&b),
+				pathCredentials(&b),
+			},
+		),
+		Secrets: []*framework.Secret{
+			b.balenaToken(),
+		},
 		BackendType: logical.TypeLogical,
 		Invalidate:  b.invalidate,
 	}
