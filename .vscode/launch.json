@@ -35,7 +35,8 @@
             "env": {
                 "VAULT_ACC":"1",
                 "TEST_BALENA_URL": "https://api.balena-cloud.com/",
-                "TEST_BALENA_TOKEN": "${input:BALENA_TOKEN}"
+                "TEST_BALENA_TOKEN": "${input:BALENA_TOKEN}",
+                "TEST_BALENA_NAME": "testAdmin"
             }
         }
     ]

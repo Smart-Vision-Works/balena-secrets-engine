@@ -14,7 +14,7 @@ const (
 	envVarRunAccTests = "VAULT_ACC"
 	envVarBalenaToken = "TEST_BALENA_TOKEN"
 	envVarBalenaURL   = "TEST_BALENA_URL"
-	envVarBalenaName  = "testAdmin"
+	envVarBalenaName  = "TEST_BALENA_NAME"
 )
 
 // getTestBackend will help you construct a test backend object.

@@ -24,7 +24,17 @@ type balenaToken struct {
 // balenaToken defines a secret to store for a given role
 // and how it should be revoked or renewed.
 func (b *balenaBackend) balenaToken() *framework.Secret {
-	return &framework.Secret{}
+	return &framework.Secret{
+		Type: balenaTokenType,
+		Fields: map[string]*framework.FieldSchema{
+			"token": {
+				Type:        framework.TypeString,
+				Description: "Balena API Key",
+			},
+		},
+		Revoke: b.tokenRevoke,
+		Renew:  b.tokenRenew,
+	}
 }
 
 // tokenRevoke removes the token from the Vault storage API and calls the client to revoke the token

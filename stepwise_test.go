@@ -33,7 +33,7 @@ func TestAccUserToken(t *testing.T) {
 	cred := new(string)
 	stepwise.Run(t, stepwise.Case{
 		Precheck:    func() { testAccPreCheck(t) },
-		Environment: dockerEnvironment.NewEnvironment("hashicups", envOptions),
+		Environment: dockerEnvironment.NewEnvironment("balena", envOptions),
 		Steps: []stepwise.Step{
 			testAccConfig(t),
 			testAccUserRole(t, roleName, name),
