@@ -28,9 +28,6 @@ func (r *balenaRoleEntry) toResponseData() map[string]interface{} {
 		"ttl":     r.TTL.Seconds(),
 		"max_ttl": r.MaxTTL.Seconds(),
 	}
-	if r.URL != "" {
-		respData["URL"] = r.URL
-	}
 	return respData
 }
 
@@ -48,10 +45,6 @@ func pathRole(b *balenaBackend) []*framework.Path {
 					Type:        framework.TypeLowerCaseString,
 					Description: "Name of the role",
 					Required:    true,
-				},
-				"url": {
-					Type:        framework.TypeLowerCaseString,
-					Description: "Balena custom api endpoint",
 				},
 				"ttl": {
 					Type:        framework.TypeDurationSecond,
@@ -136,14 +129,7 @@ func (b *balenaBackend) pathRolesWrite(ctx context.Context, req *logical.Request
 		roleEntry = &balenaRoleEntry{}
 	}
 
-	createOperation := (req.Operation == logical.CreateOperation)
-
 	roleEntry.Name = name
-	if url, ok := d.GetOk("url"); ok {
-		roleEntry.URL = url.(string)
-	} else if createOperation {
-		roleEntry.URL = "https://api.balena-cloud.com/"
-	}
 
 	if ttlRaw, ok := d.GetOk("ttl"); ok {
 		roleEntry.TTL = time.Duration(ttlRaw.(int)) * time.Second
