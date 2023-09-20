@@ -14,7 +14,7 @@ type balenaClient struct {
 
 // newClient creates a new client to access balena
 // and exposes it for any secrets or roles to use.
-func newClient(config *balenaConfig, balenaToken string) (*balenaClient, error) {
+func newClient(config *balenaConfig, bToken string) (*balenaClient, error) {
 	if config == nil {
 		return nil, errors.New("client configuration was nil")
 	}
@@ -23,7 +23,7 @@ func newClient(config *balenaConfig, balenaToken string) (*balenaClient, error) 
 		return nil, errors.New("client URL was not defined")
 	}
 
-	c := balena.New(nil, balenaToken)
+	c := balena.New(nil, bToken)
 
 	return &balenaClient{c}, nil
 }

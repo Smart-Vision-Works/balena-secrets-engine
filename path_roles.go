@@ -53,7 +53,7 @@ func pathRole(b *balenaBackend) []*framework.Path {
 					Description: "Balena account token",
 					Required:    true,
 					DisplayAttrs: &framework.DisplayAttributes{
-						Name:      "balenaToken",
+						Name:      "balenaApiKey",
 						Sensitive: true,
 					},
 				},
@@ -127,7 +127,7 @@ func (b *balenaBackend) pathRolesRead(ctx context.Context, req *logical.Request,
 // pathRolesWrite makes a request to Vault storage to update a role based on the attributes passed to the role configuration
 func (b *balenaBackend) pathRolesWrite(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	name := d.Get("name").(string)
-	balenaToken := d.Get("balenaApiKey").(string)
+	bToken := d.Get("balenaApiKey").(string)
 
 	if name == "" {
 		return logical.ErrorResponse("missing role name"), nil
@@ -147,7 +147,7 @@ func (b *balenaBackend) pathRolesWrite(ctx context.Context, req *logical.Request
 	}
 
 	roleEntry.Name = name
-	roleEntry.BalenaApiKey = balenaToken
+	roleEntry.BalenaApiKey = bToken
 
 	if ttlRaw, ok := d.GetOk("ttl"); ok {
 		roleEntry.TTL = time.Duration(ttlRaw.(int)) * time.Second

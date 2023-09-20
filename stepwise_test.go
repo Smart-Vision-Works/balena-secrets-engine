@@ -71,13 +71,13 @@ func testAccConfig(t *testing.T) stepwise.Step {
 	}
 }
 
-func testAccUserRole(t *testing.T, roleName, username string, balenaToken string) stepwise.Step {
+func testAccUserRole(t *testing.T, roleName, username string, bToken string) stepwise.Step {
 	return stepwise.Step{
 		Operation: stepwise.UpdateOperation,
 		Path:      "role/" + roleName,
 		Data: map[string]interface{}{
 			"name":        username,
-			"balenaToken": balenaToken,
+			"balenaToken": bToken,
 			"ttl":         "1m",
 			"max_ttl":     "5m",
 		},
@@ -101,13 +101,13 @@ func testAccUserRoleRead(t *testing.T, roleName, username string) stepwise.Step 
 	}
 }
 
-func testAccUserCredRead(t *testing.T, roleName string, balenaToken string, userToken *string) stepwise.Step {
+func testAccUserCredRead(t *testing.T, roleName string, bToken string, userToken *string) stepwise.Step {
 	return stepwise.Step{
 		Operation: stepwise.ReadOperation,
 		Path:      "creds/" + roleName,
 		Data: map[string]interface{}{
 			"name":        roleName,
-			"balenaToken": balenaToken,
+			"balenaToken": bToken,
 			"max_ttl":     "5m",
 		},
 		Assert: func(resp *api.Secret, err error) error {
