@@ -139,6 +139,10 @@ func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Reques
 
 // createToken uses the balena client to sign in and get a new token
 func (b *balenaBackend) createToken(ctx context.Context, s logical.Storage, roleEntry *balenaRoleEntry, balenaName string, balenaDesc string, ttl time.Duration) (*balenaToken, error) {
+	if roleEntry.BalenaApiKey == "" {
+		return nil, errors.New("error getting role key")
+	}
+
 	client, err := b.getClient(ctx, s, roleEntry.BalenaApiKey)
 	if err != nil {
 		return nil, err
