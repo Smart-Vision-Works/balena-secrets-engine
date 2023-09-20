@@ -39,7 +39,15 @@ func (b *balenaBackend) balenaToken() *framework.Secret {
 
 // tokenRevoke removes the token from the Vault storage API and calls the client to revoke the token
 func (b *balenaBackend) tokenRevoke(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	client, err := b.getClient(ctx, req.Storage)
+	roleRaw, ok := req.Secret.InternalData["role"]
+	if !ok {
+		return nil, fmt.Errorf("secret is missing role internal data")
+	}
+
+	// get the role entry
+	role := roleRaw.(string)
+	roleEntry, err := b.getRole(ctx, req.Storage, role)
+	client, err := b.getClient(ctx, req.Storage, roleEntry.BalenaApiKey)
 	if err != nil {
 		return nil, fmt.Errorf("error getting client: %w", err)
 	}
@@ -94,7 +102,7 @@ func (b *balenaBackend) tokenRenew(ctx context.Context, req *logical.Request, d 
 }
 
 // createToken calls the balena client to sign in and returns a new token
-func createToken(ctx context.Context, c *balenaClient) (*balenaToken, error) {
+func createToken(ctx context.Context, c *balenaClient, balenaName string, balenaDesc string) (*balenaToken, error) {
 
 	type balenaBody struct {
 		Name        string `json:"name"`
@@ -102,9 +110,14 @@ func createToken(ctx context.Context, c *balenaClient) (*balenaToken, error) {
 	}
 
 	tokenID := uuid.New().String()
+
+	if balenaName == "" {
+		balenaName = tokenID
+	}
+
 	body := balenaBody{
-		Name:        tokenID,
-		Description: "Vault Managed Balena Token",
+		Name:        balenaName,
+		Description: balenaDesc,
 	}
 
 	req, err := c.NewRequest(ctx, "POST", "api-key/user/full", "", body)

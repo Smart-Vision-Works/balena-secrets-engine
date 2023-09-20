@@ -29,6 +29,7 @@ func TestAccUserToken(t *testing.T) {
 
 	roleName := "vault-stepwise-user-role"
 	name := os.Getenv(envVarBalenaName)
+	bToken := os.Getenv(envVarBalenaToken)
 
 	cred := new(string)
 	stepwise.Run(t, stepwise.Case{
@@ -36,9 +37,9 @@ func TestAccUserToken(t *testing.T) {
 		Environment: dockerEnvironment.NewEnvironment("balena", envOptions),
 		Steps: []stepwise.Step{
 			testAccConfig(t),
-			testAccUserRole(t, roleName, name),
+			testAccUserRole(t, roleName, name, bToken),
 			testAccUserRoleRead(t, roleName, name),
-			testAccUserCredRead(t, roleName, cred),
+			testAccUserCredRead(t, roleName, bToken, cred),
 		},
 	})
 }
@@ -65,20 +66,20 @@ func testAccConfig(t *testing.T) stepwise.Step {
 		Operation: stepwise.UpdateOperation,
 		Path:      "config",
 		Data: map[string]interface{}{
-			"token": os.Getenv(envVarBalenaToken),
-			"url":   os.Getenv(envVarBalenaURL),
+			"url": os.Getenv(envVarBalenaURL),
 		},
 	}
 }
 
-func testAccUserRole(t *testing.T, roleName, username string) stepwise.Step {
+func testAccUserRole(t *testing.T, roleName, username string, balenaToken string) stepwise.Step {
 	return stepwise.Step{
 		Operation: stepwise.UpdateOperation,
 		Path:      "role/" + roleName,
 		Data: map[string]interface{}{
-			"name":    username,
-			"ttl":     "1m",
-			"max_ttl": "5m",
+			"name":        username,
+			"balenaToken": balenaToken,
+			"ttl":         "1m",
+			"max_ttl":     "5m",
 		},
 		Assert: func(resp *api.Secret, err error) error {
 			require.Nil(t, resp)
@@ -100,10 +101,15 @@ func testAccUserRoleRead(t *testing.T, roleName, username string) stepwise.Step 
 	}
 }
 
-func testAccUserCredRead(t *testing.T, roleName string, userToken *string) stepwise.Step {
+func testAccUserCredRead(t *testing.T, roleName string, balenaToken string, userToken *string) stepwise.Step {
 	return stepwise.Step{
 		Operation: stepwise.ReadOperation,
 		Path:      "creds/" + roleName,
+		Data: map[string]interface{}{
+			"name":        roleName,
+			"balenaToken": balenaToken,
+			"max_ttl":     "5m",
+		},
 		Assert: func(resp *api.Secret, err error) error {
 			require.NotNil(t, resp)
 			require.NotEmpty(t, resp.Data["token"])

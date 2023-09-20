@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
@@ -22,6 +23,18 @@ func pathCredentials(b *balenaBackend) *framework.Path {
 				Description: "Name of the role",
 				Required:    true,
 			},
+			"balenaName": {
+				Type:        framework.TypeLowerCaseString,
+				Description: "Name of the apikey in Balena",
+			},
+			"balenaDesc": {
+				Type:        framework.TypeLowerCaseString,
+				Description: "Decription of apikey to show in Balena",
+			},
+			"ttl": {
+				Type:        framework.TypeDurationSecond,
+				Description: "Default lease for generated credentials. If not set or set to 0, will",
+			},
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.ReadOperation:   b.pathCredentialsRead,
@@ -37,6 +50,16 @@ func pathCredentials(b *balenaBackend) *framework.Path {
 // role exists.
 func (b *balenaBackend) pathCredentialsRead(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	roleName := d.Get("name").(string)
+	balenaName := d.Get("balenaName").(string)
+	balenaDesc := d.Get("balenaDesc").(string)
+	var ttl time.Duration
+	if ttlRaw, ok := d.GetOk("ttl"); ok {
+		ttl = time.Duration(ttlRaw.(int)) * time.Second
+	}
+
+	if balenaDesc == "" {
+		balenaDesc = "Vault Managed Balena Token"
+	}
 
 	roleEntry, err := b.getRole(ctx, req.Storage, roleName)
 	if err != nil {
@@ -47,15 +70,33 @@ func (b *balenaBackend) pathCredentialsRead(ctx context.Context, req *logical.Re
 		return nil, errors.New("error retrieving role: role is nil")
 	}
 
+	roleTtl := roleEntry.TTL
+	roleMaxTtl := roleEntry.MaxTTL
+
+	if ttl == 0 {
+		ttl = roleTtl
+	}
+
+	if ttl > roleMaxTtl {
+		ttl = roleMaxTtl
+	}
+
 	if roleEntry.Name != "" {
-		return b.createUserCreds(ctx, req, roleEntry)
+		return b.createUserCreds(ctx, req, roleEntry, balenaName, balenaDesc, ttl)
+	}
+
+	if balenaName == "" {
+		balenaName = roleEntry.TokenID
 	}
 
 	resp := &logical.Response{
 		Data: map[string]interface{}{
-			"token":    roleEntry.Token,
+			"token":    roleEntry.BalenaApiKey,
 			"token_id": roleEntry.TokenID,
 			"role":     roleEntry.Name,
+			"key_name": balenaName,
+			"key_desc": balenaDesc,
+			"ttl":      ttl,
 		},
 	}
 	return resp, nil
@@ -63,14 +104,12 @@ func (b *balenaBackend) pathCredentialsRead(ctx context.Context, req *logical.Re
 
 // createUserCreds creates a new balena token to store into the Vault backend, generates
 // a response with the secrets information, and checks the TTL and MaxTTL attributes.
-func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Request, role *balenaRoleEntry) (*logical.Response, error) {
-	token, err := b.createToken(ctx, req.Storage, role)
+func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Request, role *balenaRoleEntry, balenaName string, balenaDesc string, ttl time.Duration) (*logical.Response, error) {
+
+	token, err := b.createToken(ctx, req.Storage, role, balenaName, balenaDesc, ttl)
 	if err != nil {
 		return nil, err
 	}
-
-	roleTtl := role.TTL
-	roleMaxTtl := role.MaxTTL
 
 	// The response is divided into two objects (1) internal data and (2) data.
 	// If you want to reference any information in your code, you need to
@@ -81,12 +120,14 @@ func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Reques
 	}, map[string]interface{}{
 		"token_id": token.TokenID,
 		"role":     role.Name,
-		"ttl":      roleTtl,
-		"max_ttl":  roleMaxTtl,
+		"key_name": balenaName,
+		"key_desc": balenaDesc,
+		"ttl":      ttl,
+		"max_ttl":  role.MaxTTL,
 	})
 
-	if role.TTL > 0 {
-		resp.Secret.TTL = role.TTL
+	if ttl > 0 {
+		resp.Secret.TTL = ttl
 	}
 
 	if role.MaxTTL > 0 {
@@ -97,15 +138,15 @@ func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Reques
 }
 
 // createToken uses the balena client to sign in and get a new token
-func (b *balenaBackend) createToken(ctx context.Context, s logical.Storage, roleEntry *balenaRoleEntry) (*balenaToken, error) {
-	client, err := b.getClient(ctx, s)
+func (b *balenaBackend) createToken(ctx context.Context, s logical.Storage, roleEntry *balenaRoleEntry, balenaName string, balenaDesc string, ttl time.Duration) (*balenaToken, error) {
+	client, err := b.getClient(ctx, s, roleEntry.BalenaApiKey)
 	if err != nil {
 		return nil, err
 	}
 
 	var token *balenaToken
 
-	token, err = createToken(ctx, client)
+	token, err = createToken(ctx, client, balenaName, balenaDesc)
 	if err != nil {
 		return nil, fmt.Errorf("error creating balena token: %w", err)
 	}
