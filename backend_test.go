@@ -104,38 +104,38 @@ func (e *testEnv) ReadUserToken(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, resp)
 
-	if t, ok := resp.Data["token"]; ok {
+	if t, ok := resp.Data["token_id"]; ok {
 		e.Tokens = append(e.Tokens, t.(string))
 	}
-	require.NotEmpty(t, resp.Data["token"])
+	require.NotEmpty(t, resp.Data["token_id"])
 
 	if e.SecretToken != "" {
-		require.NotEqual(t, e.SecretToken, resp.Data["token"])
+		require.NotEqual(t, e.SecretToken, resp.Data["token_id"])
 	}
 
 	// collect secret IDs to revoke at end of test
 	require.NotNil(t, resp.Secret)
-	if t, ok := resp.Secret.InternalData["token"]; ok {
+	if t, ok := resp.Secret.InternalData["token_id"]; ok {
 		e.SecretToken = t.(string)
 	}
 }
 
 // CleanupUserTokens removes the tokens
 // when the test completes.
-// func (e *testEnv) CleanupUserTokens(t *testing.T) {
-// 	if len(e.Tokens) == 0 {
-// 		t.Fatalf("expected 2 tokens, got: %d", len(e.Tokens))
-// 	}
+func (e *testEnv) CleanupUserTokens(t *testing.T) {
+	if len(e.Tokens) == 0 {
+		t.Fatalf("expected 2 tokens, got: %d", len(e.Tokens))
+	}
 
-// 	for _, token := range e.Tokens {
-// 		b := e.Backend.(*balenaBackend)
-// 		client, err := b.getClient(e.Context, e.Storage)
-// 		if err != nil {
-// 			t.Fatal("fatal getting client")
-// 		}
-// 		b.pathRolesRead()
-// 		if err := client.SignOut(); err != nil {
-// 			t.Fatalf("unexpected error deleting user token: %s", err)
-// 		}
-// 	}
-// }
+	for _, token := range e.Tokens {
+		b := e.Backend.(*balenaBackend)
+		client, err := b.getClient(e.Context, e.Storage)
+		if err != nil {
+			t.Fatal("fatal getting client")
+		}
+
+		if err := deleteToken(e.Context, client, token); err != nil {
+			t.Fatalf("unexpected error deleting user token: %s", err)
+		}
+	}
+}

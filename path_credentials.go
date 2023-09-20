@@ -69,6 +69,9 @@ func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Reques
 		return nil, err
 	}
 
+	roleTtl := role.TTL
+	roleMaxTtl := role.MaxTTL
+
 	// The response is divided into two objects (1) internal data and (2) data.
 	// If you want to reference any information in your code, you need to
 	// store it in internal data!
@@ -76,8 +79,10 @@ func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Reques
 		"token":    token.Token,
 		"token_id": token.TokenID,
 	}, map[string]interface{}{
-		"token": token.Token,
-		"role":  role.Name,
+		"token_id": token.TokenID,
+		"role":     role.Name,
+		"ttl":      roleTtl,
+		"max_ttl":  roleMaxTtl,
 	})
 
 	if role.TTL > 0 {
