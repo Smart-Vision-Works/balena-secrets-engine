@@ -91,7 +91,7 @@ func (b *balenaBackend) pathCredentialsRead(ctx context.Context, req *logical.Re
 
 	resp := &logical.Response{
 		Data: map[string]interface{}{
-			"token":    roleEntry.BalenaApiKey,
+			"token":    roleEntry.Token,
 			"token_id": roleEntry.TokenID,
 			"role":     roleEntry.Name,
 			"key_name": balenaName,
