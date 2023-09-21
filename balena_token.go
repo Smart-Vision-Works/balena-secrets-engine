@@ -94,7 +94,7 @@ func (b *balenaBackend) tokenRenew(ctx context.Context, req *logical.Request, d 
 }
 
 // createToken calls the balena client to sign in and returns a new token
-func createToken(ctx context.Context, c *balenaClient) (*balenaToken, error) {
+func createToken(ctx context.Context, c *balenaClient, balenaName string, balenaDesc string) (*balenaToken, error) {
 
 	type balenaBody struct {
 		Name        string `json:"name"`
@@ -102,9 +102,14 @@ func createToken(ctx context.Context, c *balenaClient) (*balenaToken, error) {
 	}
 
 	tokenID := uuid.New().String()
+
+	if balenaName == "" {
+		balenaName = tokenID
+	}
+
 	body := balenaBody{
-		Name:        tokenID,
-		Description: "Vault Managed Balena Token",
+		Name:        balenaName,
+		Description: balenaDesc,
 	}
 
 	req, err := c.NewRequest(ctx, "POST", "api-key/user/full", "", body)
