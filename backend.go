@@ -97,11 +97,11 @@ func (b *balenaBackend) getClient(ctx context.Context, s logical.Storage) (*bale
 		return nil, err
 	}
 
-	if b.client == nil {
-		if config == nil {
-			config = new(balenaConfig)
-		}
+	// if b.client == nil {
+	if config == nil {
+		config = new(balenaConfig)
 	}
+	// }
 
 	b.client, err = newClient(config)
 	if err != nil {

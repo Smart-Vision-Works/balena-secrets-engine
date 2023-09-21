@@ -44,20 +44,20 @@ func (b *balenaBackend) tokenRevoke(ctx context.Context, req *logical.Request, d
 		return nil, fmt.Errorf("error getting client: %w", err)
 	}
 
-	tokenID := ""
+	tokenName := ""
 	// We passed the token using InternalData from when we first created
 	// the secret. This is because the balena API uses the exact token
 	// for revocation. From a security standpoint, your target API and client
 	// should use a token ID instead!
-	tokenRaw, ok := req.Secret.InternalData["token_id"]
+	nameRaw, ok := req.Secret.InternalData["key_name"]
 	if ok {
-		tokenID, ok = tokenRaw.(string)
+		tokenName, ok = nameRaw.(string)
 		if !ok {
 			return nil, fmt.Errorf("invalid value for tokenID in secret internal data")
 		}
 	}
 
-	if err := deleteToken(ctx, client, tokenID); err != nil {
+	if err := deleteToken(ctx, client, tokenName); err != nil {
 		return nil, fmt.Errorf("error revoking user token: %w", err)
 	}
 	return nil, nil
@@ -127,7 +127,7 @@ func createToken(ctx context.Context, c *balenaClient, balenaName string, balena
 }
 
 // deleteToken calls the balena client to sign out and revoke the token
-func deleteToken(ctx context.Context, c *balenaClient, tokenID string) error {
+func deleteToken(ctx context.Context, c *balenaClient, tokenName string) error {
 	type ApiKey struct {
 		D []struct {
 			ID          int       `json:"id"`
@@ -140,7 +140,7 @@ func deleteToken(ctx context.Context, c *balenaClient, tokenID string) error {
 
 	var key ApiKey
 
-	req, err := c.NewRequest(ctx, "GET", fmt.Sprintf("v6/api_key?$select=id,created_at,name,description,expiry_date&$filter=(name%%20eq%%20%%27%s%%27)", tokenID), "", nil)
+	req, err := c.NewRequest(ctx, "GET", fmt.Sprintf("v6/api_key?$select=id,created_at,name,description,expiry_date&$filter=(name%%20eq%%20%%27%s%%27)", tokenName), "", nil)
 
 	err = c.Do(req, &key)
 

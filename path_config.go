@@ -100,6 +100,8 @@ func (b *balenaBackend) pathConfigWrite(ctx context.Context, req *logical.Reques
 		return nil, err
 	}
 
+	createOperation := (req.Operation == logical.CreateOperation)
+
 	if config == nil {
 		if req.Operation == logical.UpdateOperation {
 			return nil, errors.New("config not found during update operation")
@@ -115,6 +117,8 @@ func (b *balenaBackend) pathConfigWrite(ctx context.Context, req *logical.Reques
 	token, ok := data.GetOk("token")
 	if ok {
 		config.Token = token.(string)
+	} else if !ok && createOperation {
+		return nil, fmt.Errorf("missing token in configuration")
 	}
 
 	entry, err := logical.StorageEntryJSON(configStoragePath, config)
