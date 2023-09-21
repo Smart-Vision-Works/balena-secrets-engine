@@ -85,17 +85,13 @@ func (b *balenaBackend) pathCredentialsRead(ctx context.Context, req *logical.Re
 		return b.createUserCreds(ctx, req, roleEntry, balenaName, balenaDesc, ttl)
 	}
 
-	if balenaName == "" {
-		balenaName = roleEntry.TokenID
-	}
-
 	resp := &logical.Response{
 		Data: map[string]interface{}{
 			"token":    roleEntry.Token,
 			"token_id": roleEntry.TokenID,
 			"role":     roleEntry.Name,
-			"key_name": balenaName,
-			"key_desc": balenaDesc,
+			"key_name": roleEntry.KeyName,
+			"key_desc": roleEntry.KeyDesc,
 			"ttl":      ttl,
 		},
 	}
@@ -118,9 +114,10 @@ func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Reques
 		"token":    token.Token,
 		"token_id": token.TokenID,
 		"key_name": token.BalenaName,
+		"role":     role.Name,
+		"key_desc": balenaDesc,
 	}, map[string]interface{}{
 		"token_id": token.TokenID,
-		"role":     role.Name,
 		"key_name": token.BalenaName,
 		"key_desc": balenaDesc,
 		"ttl":      ttl,

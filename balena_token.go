@@ -54,7 +54,7 @@ func (b *balenaBackend) tokenRevoke(ctx context.Context, req *logical.Request, d
 	// the secret. This is because the balena API uses the exact token
 	// for revocation. From a security standpoint, your target API and client
 	// should use a token ID instead!
-	nameRaw, ok := req.Secret.InternalData["balenaName"]
+	nameRaw, ok := req.Secret.InternalData["key_name"]
 	if ok {
 		tokenName, ok = nameRaw.(string)
 		if !ok {
