@@ -117,10 +117,11 @@ func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Reques
 	resp := b.Secret(balenaTokenType).Response(map[string]interface{}{
 		"token":    token.Token,
 		"token_id": token.TokenID,
+		"key_name": token.BalenaName,
 	}, map[string]interface{}{
 		"token_id": token.TokenID,
 		"role":     role.Name,
-		"key_name": balenaName,
+		"key_name": token.BalenaName,
 		"key_desc": balenaDesc,
 		"ttl":      ttl,
 		"max_ttl":  role.MaxTTL,

@@ -17,8 +17,9 @@ const (
 
 // balenaToken defines a secret for the balena token
 type balenaToken struct {
-	TokenID string `json:"token_id"`
-	Token   string `json:"token"`
+	TokenID    string `json:"token_id"`
+	Token      string `json:"token"`
+	BalenaName string `json:"balenaName"`
 }
 
 // balenaToken defines a secret to store for a given role
@@ -30,6 +31,10 @@ func (b *balenaBackend) balenaToken() *framework.Secret {
 			"token": {
 				Type:        framework.TypeString,
 				Description: "Balena API Key",
+			},
+			"balenaName": {
+				Type:        framework.TypeString,
+				Description: "Name of Token in Balena",
 			},
 		},
 		Revoke: b.tokenRevoke,
@@ -49,7 +54,7 @@ func (b *balenaBackend) tokenRevoke(ctx context.Context, req *logical.Request, d
 	// the secret. This is because the balena API uses the exact token
 	// for revocation. From a security standpoint, your target API and client
 	// should use a token ID instead!
-	nameRaw, ok := req.Secret.InternalData["key_name"]
+	nameRaw, ok := req.Secret.InternalData["balenaName"]
 	if ok {
 		tokenName, ok = nameRaw.(string)
 		if !ok {
@@ -121,8 +126,9 @@ func createToken(ctx context.Context, c *balenaClient, balenaName string, balena
 	}
 
 	return &balenaToken{
-		TokenID: tokenID,
-		Token:   token,
+		TokenID:    tokenID,
+		Token:      token,
+		BalenaName: balenaName,
 	}, nil
 }
 
