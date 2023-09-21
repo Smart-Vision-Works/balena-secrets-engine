@@ -17,9 +17,9 @@ const (
 
 // balenaToken defines a secret for the balena token
 type balenaToken struct {
-	TokenID    string `json:"token_id"`
-	Token      string `json:"token"`
-	BalenaName string `json:"balenaName"`
+	TokenID string `json:"token_id"`
+	Token   string `json:"token"`
+	KeyName string `json:"key_name"`
 }
 
 // balenaToken defines a secret to store for a given role
@@ -32,7 +32,7 @@ func (b *balenaBackend) balenaToken() *framework.Secret {
 				Type:        framework.TypeString,
 				Description: "Balena API Key",
 			},
-			"balenaName": {
+			"key_name": {
 				Type:        framework.TypeString,
 				Description: "Name of Token in Balena",
 			},
@@ -126,9 +126,9 @@ func createToken(ctx context.Context, c *balenaClient, balenaName string, balena
 	}
 
 	return &balenaToken{
-		TokenID:    tokenID,
-		Token:      token,
-		BalenaName: balenaName,
+		TokenID: tokenID,
+		Token:   token,
+		KeyName: balenaName,
 	}, nil
 }
 
