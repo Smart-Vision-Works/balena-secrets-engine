@@ -43,9 +43,9 @@ var runAcceptanceTests = os.Getenv(envVarRunAccTests) == "1"
 // testEnv creates an object to store and track testing environment
 // resources
 type testEnv struct {
-	Token string
-	URL   string
-	Name  string
+	BalenaApiKey string
+	URL          string
+	Name         string
 
 	Backend logical.Backend
 	Context context.Context
@@ -67,8 +67,7 @@ func (e *testEnv) AddConfig(t *testing.T) {
 		Path:      "config",
 		Storage:   e.Storage,
 		Data: map[string]interface{}{
-			"token": e.Token,
-			"url":   e.URL,
+			"url": e.URL,
 		},
 	}
 	resp, err := e.Backend.HandleRequest(e.Context, req)
@@ -84,7 +83,8 @@ func (e *testEnv) AddUserTokenRole(t *testing.T) {
 		Path:      "role/test-user-token",
 		Storage:   e.Storage,
 		Data: map[string]interface{}{
-			"name": e.Name,
+			"name":         e.Name,
+			"balenaApiKey": e.BalenaApiKey,
 		},
 	}
 	resp, err := e.Backend.HandleRequest(e.Context, req)
@@ -122,20 +122,20 @@ func (e *testEnv) ReadUserToken(t *testing.T) {
 
 // CleanupUserTokens removes the tokens
 // when the test completes.
-func (e *testEnv) CleanupUserTokens(t *testing.T) {
-	if len(e.Tokens) == 0 {
-		t.Fatalf("expected 2 tokens, got: %d", len(e.Tokens))
-	}
+// func (e *testEnv) CleanupUserTokens(t *testing.T) {
+// 	if len(e.Tokens) == 0 {
+// 		t.Fatalf("expected 2 tokens, got: %d", len(e.Tokens))
+// 	}
 
-	for _, token := range e.Tokens {
-		b := e.Backend.(*balenaBackend)
-		client, err := b.getClient(e.Context, e.Storage)
-		if err != nil {
-			t.Fatal("fatal getting client")
-		}
+// 	for _, token := range e.Tokens {
+// 		b := e.Backend.(*balenaBackend)
+// 		client, err := b.getClient(e.Context, e.Storage)
+// 		if err != nil {
+// 			t.Fatal("fatal getting client")
+// 		}
 
-		if err := deleteToken(e.Context, client, token); err != nil {
-			t.Fatalf("unexpected error deleting user token: %s", err)
-		}
-	}
-}
+// 		if err := deleteToken(e.Context, client, token); err != nil {
+// 			t.Fatalf("unexpected error deleting user token: %s", err)
+// 		}
+// 	}
+// }

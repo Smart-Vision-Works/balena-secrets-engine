@@ -2,6 +2,7 @@ package balenakeys
 
 import (
 	"context"
+	"os"
 	"strconv"
 	"testing"
 
@@ -25,8 +26,9 @@ func TestUserRole(t *testing.T) {
 			_, err := testTokenRoleCreate(t, b, s,
 				roleName+strconv.Itoa(i),
 				map[string]interface{}{
-					"name":    roleName,
-					"max_ttl": "3600",
+					"name":         roleName,
+					"balenaApiKey": os.Getenv(envVarBalenaToken),
+					"max_ttl":      "3600",
 				})
 			require.NoError(t, err)
 		}
@@ -38,8 +40,9 @@ func TestUserRole(t *testing.T) {
 
 	t.Run("Create User Role - pass", func(t *testing.T) {
 		resp, err := testTokenRoleCreate(t, b, s, roleName, map[string]interface{}{
-			"name":    roleName,
-			"max_ttl": "3600",
+			"name":         roleName,
+			"balenaApiKey": os.Getenv(envVarBalenaToken),
+			"max_ttl":      "3600",
 		})
 
 		require.Nil(t, err)

@@ -16,8 +16,7 @@ const (
 // balenaConfig includes the minimum configuration
 // required to instantiate a new balena client.
 type balenaConfig struct {
-	Token string `json:"token"`
-	URL   string `json:"url"`
+	URL string `json:"url"`
 }
 
 // pathConfig extends the Vault API with a `/config`
@@ -30,15 +29,6 @@ func pathConfig(b *balenaBackend) *framework.Path {
 	return &framework.Path{
 		Pattern: "config",
 		Fields: map[string]*framework.FieldSchema{
-			"token": {
-				Type:        framework.TypeString,
-				Description: "The token to access the Balena Cloud API",
-				Required:    true,
-				DisplayAttrs: &framework.DisplayAttributes{
-					Name:      "Token",
-					Sensitive: true,
-				},
-			},
 			"url": {
 				Type:        framework.TypeString,
 				Description: "The URL for the Balena Cloud API",
@@ -111,11 +101,6 @@ func (b *balenaBackend) pathConfigWrite(ctx context.Context, req *logical.Reques
 	url := data.Get("url").(string)
 
 	config.URL = url
-
-	token, ok := data.GetOk("token")
-	if ok {
-		config.Token = token.(string)
-	}
 
 	entry, err := logical.StorageEntryJSON(configStoragePath, config)
 	if err != nil {

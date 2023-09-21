@@ -13,20 +13,22 @@ import (
 // for a Vault role to access and call the balena
 // token endpoints
 type balenaRoleEntry struct {
-	Name    string        `json:"name"`
-	URL     string        `json:"url"`
-	Token   string        `json:"token,omitempty"`
-	TokenID string        `json:"token_id,omitempty"`
-	TTL     time.Duration `json:"ttl"`
-	MaxTTL  time.Duration `json:"max_ttl"`
+	Name         string        `json:"name"`
+	URL          string        `json:"url"`
+	BalenaApiKey string        `json:"balena_api_key"`
+	Token        string        `json:"token,omitempty"`
+	TokenID      string        `json:"token_id,omitempty"`
+	TTL          time.Duration `json:"ttl"`
+	MaxTTL       time.Duration `json:"max_ttl"`
 }
 
 // toResponseData returns response data for a role
 func (r *balenaRoleEntry) toResponseData() map[string]interface{} {
 	respData := map[string]interface{}{
-		"name":    r.Name,
-		"ttl":     r.TTL.Seconds(),
-		"max_ttl": r.MaxTTL.Seconds(),
+		"name":         r.Name,
+		"balenaApiKey": r.BalenaApiKey,
+		"ttl":          r.TTL.Seconds(),
+		"max_ttl":      r.MaxTTL.Seconds(),
 	}
 	return respData
 }
@@ -45,6 +47,15 @@ func pathRole(b *balenaBackend) []*framework.Path {
 					Type:        framework.TypeLowerCaseString,
 					Description: "Name of the role",
 					Required:    true,
+				},
+				"balenaApiKey": {
+					Type:        framework.TypeString,
+					Description: "Balena account token",
+					Required:    true,
+					DisplayAttrs: &framework.DisplayAttributes{
+						Name:      "balenaApiKey",
+						Sensitive: true,
+					},
 				},
 				"ttl": {
 					Type:        framework.TypeDurationSecond,
@@ -116,9 +127,15 @@ func (b *balenaBackend) pathRolesRead(ctx context.Context, req *logical.Request,
 // pathRolesWrite makes a request to Vault storage to update a role based on the attributes passed to the role configuration
 func (b *balenaBackend) pathRolesWrite(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	name := d.Get("name").(string)
+	bToken := d.Get("balenaApiKey").(string)
+
 	if name == "" {
 		return logical.ErrorResponse("missing role name"), nil
 	}
+
+	// if balenaToken == "" {
+	// 	return logical.ErrorResponse("missing role Balena token"), nil
+	// }
 
 	roleEntry, err := b.getRole(ctx, req.Storage, name)
 	if err != nil {
@@ -130,6 +147,7 @@ func (b *balenaBackend) pathRolesWrite(ctx context.Context, req *logical.Request
 	}
 
 	roleEntry.Name = name
+	roleEntry.BalenaApiKey = bToken
 
 	if ttlRaw, ok := d.GetOk("ttl"); ok {
 		roleEntry.TTL = time.Duration(ttlRaw.(int)) * time.Second

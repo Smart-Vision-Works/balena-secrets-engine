@@ -106,6 +106,7 @@ func (b *balenaBackend) pathCredentialsRead(ctx context.Context, req *logical.Re
 // createUserCreds creates a new balena token to store into the Vault backend, generates
 // a response with the secrets information, and checks the TTL and MaxTTL attributes.
 func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Request, role *balenaRoleEntry, balenaName string, balenaDesc string, ttl time.Duration) (*logical.Response, error) {
+
 	token, err := b.createToken(ctx, req.Storage, role, balenaName, balenaDesc, ttl)
 	if err != nil {
 		return nil, err
@@ -139,7 +140,11 @@ func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Reques
 
 // createToken uses the balena client to sign in and get a new token
 func (b *balenaBackend) createToken(ctx context.Context, s logical.Storage, roleEntry *balenaRoleEntry, balenaName string, balenaDesc string, ttl time.Duration) (*balenaToken, error) {
-	client, err := b.getClient(ctx, s)
+	if roleEntry.BalenaApiKey == "" {
+		return nil, errors.New("error getting role key")
+	}
+
+	client, err := b.getClient(ctx, s, roleEntry.BalenaApiKey)
 	if err != nil {
 		return nil, err
 	}

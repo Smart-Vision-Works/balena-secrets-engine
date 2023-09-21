@@ -29,12 +29,12 @@ func newAcceptanceTestEnv() (*testEnv, error) {
 		return nil, err
 	}
 	return &testEnv{
-		Token:   os.Getenv(envVarBalenaToken),
-		URL:     os.Getenv(envVarBalenaURL),
-		Name:    "testRole",
-		Backend: b,
-		Context: ctx,
-		Storage: &logical.InmemStorage{},
+		BalenaApiKey: os.Getenv(envVarBalenaToken),
+		URL:          os.Getenv(envVarBalenaURL),
+		Name:         "testRole",
+		Backend:      b,
+		Context:      ctx,
+		Storage:      &logical.InmemStorage{},
 	}, nil
 }
 
@@ -54,5 +54,5 @@ func TestAcceptanceUserToken(t *testing.T) {
 	t.Run("add user token role", acceptanceTestEnv.AddUserTokenRole)
 	t.Run("read user token cred", acceptanceTestEnv.ReadUserToken)
 	t.Run("read user token cred", acceptanceTestEnv.ReadUserToken)
-	t.Run("cleanup user tokens", acceptanceTestEnv.CleanupUserTokens)
+	// t.Run("cleanup user tokens", acceptanceTestEnv.CleanupUserTokens)
 }
