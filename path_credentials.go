@@ -114,11 +114,11 @@ func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Reques
 		"token":    token.Token,
 		"token_id": token.TokenID,
 		"key_name": token.KeyName,
-		"role":     role.Name,
 		"key_desc": balenaDesc,
 	}, map[string]interface{}{
 		"token_id": token.TokenID,
 		"key_name": token.KeyName,
+		"role":     role.Name,
 		"key_desc": balenaDesc,
 		"ttl":      ttl,
 		"max_ttl":  role.MaxTTL,

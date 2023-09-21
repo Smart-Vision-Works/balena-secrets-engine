@@ -17,7 +17,7 @@ type balenaRoleEntry struct {
 	URL     string        `json:"url"`
 	Token   string        `json:"token,omitempty"`
 	TokenID string        `json:"token_id,omitempty"`
-	KeyName string        `json:"key_name,omitempty"`
+	KeyName string        `json:"key_name"`
 	KeyDesc string        `json:"key_desc,omitempty"`
 	TTL     time.Duration `json:"ttl"`
 	MaxTTL  time.Duration `json:"max_ttl"`
