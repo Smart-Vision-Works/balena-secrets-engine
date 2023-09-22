@@ -24,11 +24,11 @@ func pathCredentials(b *balenaBackend) *framework.Path {
 				Required:    true,
 			},
 			"balenaName": {
-				Type:        framework.TypeLowerCaseString,
+				Type:        framework.TypeString,
 				Description: "Name of the apikey in Balena",
 			},
 			"balenaDesc": {
-				Type:        framework.TypeLowerCaseString,
+				Type:        framework.TypeString,
 				Description: "Decription of apikey to show in Balena",
 			},
 			"ttl": {
@@ -115,6 +115,8 @@ func (b *balenaBackend) createUserCreds(ctx context.Context, req *logical.Reques
 		"token_id": token.TokenID,
 		"key_name": token.KeyName,
 		"key_desc": balenaDesc,
+		"ttl":      ttl,
+		"max_ttl":  role.MaxTTL,
 	}, map[string]interface{}{
 		"token_id": token.TokenID,
 		"key_name": token.KeyName,
