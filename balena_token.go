@@ -2,7 +2,6 @@ package balenakeys
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -70,29 +69,26 @@ func (b *balenaBackend) tokenRevoke(ctx context.Context, req *logical.Request, d
 
 // tokenRenew calls the client to create a new token and stores it in the Vault storage API
 func (b *balenaBackend) tokenRenew(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	roleRaw, ok := req.Secret.InternalData["role"]
+	ttlRaw, ok := req.Secret.InternalData["ttl"]
 	if !ok {
-		return nil, fmt.Errorf("secret is missing role internal data")
+		return nil, fmt.Errorf("secret is missing ttl internal data")
 	}
 
 	// get the role entry
-	role := roleRaw.(string)
-	roleEntry, err := b.getRole(ctx, req.Storage, role)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving role: %w", err)
-	}
-
-	if roleEntry == nil {
-		return nil, errors.New("error retrieving role: role is nil")
+	maxTtlRaw, ok := req.Secret.InternalData["max_ttl"]
+	if !ok {
+		return nil, fmt.Errorf("secret is missing max_ttl internal data")
 	}
 
 	resp := &logical.Response{Secret: req.Secret}
+	ttl := time.Duration(ttlRaw.(float64)) * time.Second
+	maxTtl := time.Duration(maxTtlRaw.(float64)) * time.Second
 
-	if roleEntry.TTL > 0 {
-		resp.Secret.TTL = roleEntry.TTL
+	if ttl > 0 {
+		resp.Secret.TTL = ttl
 	}
-	if roleEntry.MaxTTL > 0 {
-		resp.Secret.MaxTTL = roleEntry.MaxTTL
+	if maxTtl > 0 {
+		resp.Secret.MaxTTL = maxTtl
 	}
 
 	return resp, nil
