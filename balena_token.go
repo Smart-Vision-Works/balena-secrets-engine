@@ -81,8 +81,8 @@ func (b *balenaBackend) tokenRenew(ctx context.Context, req *logical.Request, d 
 	}
 
 	resp := &logical.Response{Secret: req.Secret}
-	ttl := time.Duration(ttlRaw.(float64)) * time.Second
-	maxTtl := time.Duration(maxTtlRaw.(float64)) * time.Second
+	ttl := time.Duration(ttlRaw.(float64))
+	maxTtl := time.Duration(maxTtlRaw.(float64))
 
 	if ttl > 0 {
 		resp.Secret.TTL = ttl
