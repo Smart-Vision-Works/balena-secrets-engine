@@ -106,4 +106,4 @@ alt-svc: h3=":443"; ma=86400
 
 Currently API keys generated for an account cannot generate new API Keys, so you have to use the Session Token when configuring the role. It expires every 7 days so must be rotated. You can automate this with scripting.
 
-![Alt text](https://storage.googleapis.com/static_assets/scripts/balena-key-example.png)
+![Alt text](https://storage.googleapis.com/static_assets/scripts/balena-session-token.png)
