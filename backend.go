@@ -84,10 +84,6 @@ func (b *balenaBackend) getClient(ctx context.Context, s logical.Storage, bToken
 	unlockFunc := b.lock.RUnlock
 	defer func() { unlockFunc() }()
 
-	if b.client != nil {
-		return b.client, nil
-	}
-
 	b.lock.RUnlock()
 	b.lock.Lock()
 	unlockFunc = b.lock.Unlock
