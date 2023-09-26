@@ -13,14 +13,15 @@ import (
 // for a Vault role to access and call the balena
 // token endpoints
 type balenaRoleEntry struct {
-	Name    string        `json:"name"`
-	URL     string        `json:"url"`
-	Token   string        `json:"token,omitempty"`
-	TokenID string        `json:"token_id,omitempty"`
-	KeyName string        `json:"key_name"`
-	KeyDesc string        `json:"key_desc,omitempty"`
-	TTL     time.Duration `json:"ttl"`
-	MaxTTL  time.Duration `json:"max_ttl"`
+	Name         string        `json:"name"`
+	URL          string        `json:"url"`
+	BalenaApiKey string        `json:"balena_api_key"`
+	Token        string        `json:"token,omitempty"`
+	TokenID      string        `json:"token_id,omitempty"`
+	KeyName      string        `json:"key_name"`
+	KeyDesc      string        `json:"key_desc,omitempty"`
+	TTL          time.Duration `json:"ttl"`
+	MaxTTL       time.Duration `json:"max_ttl"`
 }
 
 // toResponseData returns response data for a role
@@ -47,6 +48,15 @@ func pathRole(b *balenaBackend) []*framework.Path {
 					Type:        framework.TypeLowerCaseString,
 					Description: "Name of the role",
 					Required:    true,
+				},
+				"balenaApiKey": {
+					Type:        framework.TypeString,
+					Description: "Balena account token",
+					Required:    true,
+					DisplayAttrs: &framework.DisplayAttributes{
+						Name:      "balenaApiKey",
+						Sensitive: true,
+					},
 				},
 				"ttl": {
 					Type:        framework.TypeDurationSecond,
@@ -122,6 +132,12 @@ func (b *balenaBackend) pathRolesWrite(ctx context.Context, req *logical.Request
 		return logical.ErrorResponse("missing role name"), nil
 	}
 
+	bToken := d.Get("balenaApiKey").(string)
+
+	if bToken == "" {
+		return logical.ErrorResponse("missing role Balena token"), nil
+	}
+
 	roleEntry, err := b.getRole(ctx, req.Storage, name)
 	if err != nil {
 		return nil, err
@@ -132,6 +148,7 @@ func (b *balenaBackend) pathRolesWrite(ctx context.Context, req *logical.Request
 	}
 
 	roleEntry.Name = name
+	roleEntry.BalenaApiKey = bToken
 
 	if ttlRaw, ok := d.GetOk("ttl"); ok {
 		roleEntry.TTL = time.Duration(ttlRaw.(int)) * time.Second

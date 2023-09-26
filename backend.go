@@ -79,7 +79,7 @@ func (b *balenaBackend) invalidate(ctx context.Context, key string) {
 
 // getClient locks the backend as it configures and creates a
 // a new client for the target API
-func (b *balenaBackend) getClient(ctx context.Context, s logical.Storage) (*balenaClient, error) {
+func (b *balenaBackend) getClient(ctx context.Context, s logical.Storage, bToken string) (*balenaClient, error) {
 	b.lock.RLock()
 	unlockFunc := b.lock.RUnlock
 	defer func() { unlockFunc() }()
@@ -103,7 +103,7 @@ func (b *balenaBackend) getClient(ctx context.Context, s logical.Storage) (*bale
 	}
 	// }
 
-	b.client, err = newClient(config)
+	b.client, err = newClient(config, bToken)
 	if err != nil {
 		return nil, err
 	}
