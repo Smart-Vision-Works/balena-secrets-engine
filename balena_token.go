@@ -151,7 +151,7 @@ func deleteToken(ctx context.Context, c *balenaClient, tokenName string) error {
 
 	var key ApiKey
 
-	req, err := c.NewRequest(ctx, "GET", fmt.Sprintf("v6/api_key?$select=id,created_at,name,description,expiry_date&$filter=(name%%20eq%%20%%27%s%%27)", tokenName), "", nil)
+	req, err := c.NewRequest(ctx, "GET", fmt.Sprintf("v6/api_key?$select=id,created_at,name,description,expiry_date&$filter=(name%%20eq%%20%%27%s%%27)&$orderby=created_at%20asc&$skip=0", tokenName), "", nil)
 
 	err = c.Do(req, &key)
 
