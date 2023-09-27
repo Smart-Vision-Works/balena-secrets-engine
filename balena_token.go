@@ -43,7 +43,16 @@ func (b *balenaBackend) balenaToken() *framework.Secret {
 
 // tokenRevoke removes the token from the Vault storage API and calls the client to revoke the token
 func (b *balenaBackend) tokenRevoke(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	client, err := b.getClient(ctx, req.Storage)
+	roleRaw, ok := req.Secret.InternalData["role"]
+	if !ok {
+		return nil, fmt.Errorf("secret is missing role internal data")
+	}
+
+	// get the role entry
+	role := roleRaw.(string)
+	roleEntry, err := b.getRole(ctx, req.Storage, role)
+
+	client, err := b.getClient(ctx, req.Storage, roleEntry.BalenaApiKey)
 	if err != nil {
 		return nil, fmt.Errorf("error getting client: %w", err)
 	}
@@ -142,7 +151,7 @@ func deleteToken(ctx context.Context, c *balenaClient, tokenName string) error {
 
 	var key ApiKey
 
-	req, err := c.NewRequest(ctx, "GET", fmt.Sprintf("v6/api_key?$select=id,created_at,name,description,expiry_date&$filter=(name%%20eq%%20%%27%s%%27)", tokenName), "", nil)
+	req, err := c.NewRequest(ctx, "GET", fmt.Sprintf("v6/api_key?$select=id,created_at,name,description,expiry_date&$filter=(name%%20eq%%20%%27%s%%27)&$orderby=created_at%%20asc&$skip=0", tokenName), "", nil)
 
 	err = c.Do(req, &key)
 
