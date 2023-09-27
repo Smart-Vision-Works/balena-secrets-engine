@@ -7,9 +7,11 @@ This is a Vault plugin to manage API Keys for the IoT Platform [Balena](https://
 You can run a set of commands to enable the secrets engine at `/balena` in
 Vault.
 
-Then, you can write a configuration and a `default` role based on a Balena account.
+Then, you can write a configuration and a role based on a Balena account.
 
-Finally, you can read the credentials for the `default` role.
+NOTE: Each role requires a different Balena account and balenaApiKey (Session Token) associated with that account
+
+Finally, you can read the credentials for the role.
 
 ```shell
 $ CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o vault/plugins/vault-plugin-secrets-balena cmd/vault-plugin-secrets-balena/main.go
@@ -26,13 +28,13 @@ Success! Registered plugin: vault-plugin-secrets-balena
 vault secrets enable -path=balena vault-plugin-secrets-balena
 Success! Enabled the vault-plugin-secrets-balena secrets engine at: balena/
 
-vault write balena/config url="https://api.balena-cloud.com" token="${BALENA_SESSION_TOKEN}"
+vault write balena/config url="https://api.balena-cloud.com"
 Success! Data written to: balena/config
 
-vault write balen/role/default ttl="5m" max_ttl="1h"
-Success! Data written to: balena/role/default
+vault write balen/role/developer balenaApiKey="${BALENA_SESSION_TOKEN}" ttl="5m" max_ttl="1h"
+Success! Data written to: balena/role/developer
 
-vault read balena/creds/default
+vault read balena/creds/developer
 Key                Value
 ---                -----
 lease_id           balena/creds/default/tVsj1JusAp8mW2vgD3FqAnxf
@@ -69,18 +71,18 @@ server: cloudflare
 cf-ray: 80c4250e0fa6ec80-SEA
 alt-svc: h3=":443"; ma=86400
 
-{"id":54623,"username":"admin53","email":"admin@mydomain.com"}
+{"id":54623,"username":"developer_87","email":"developer@mydomain.com"}
 ```
 
-Revoke the lease for the HashiCups token in Vault.
+Revoke the lease for the Balena token in Vault.
 
 ```shell
-$ vault lease revoke balena/creds/default/tVsj1JusAp8mW2vgD3FqAnxf
+$ vault lease revoke balena/creds/developer/tVsj1JusAp8mW2vgD3FqAnxf
 
 All revocation operations queued successfully!
 ```
 
-If you try to add a new coffee product, tonic espresso, to HashiCups, you'll find that the token is no longer valid.
+If you try to call the Balena API again, you'll find that the token is no longer valid.
 
 ```shell
 $ curl -i -X GET -H "Authorization: ${TOKEN}" -H  "Content-Type: application/json" https://api.balena-cloud.com/user/v1/whoami
