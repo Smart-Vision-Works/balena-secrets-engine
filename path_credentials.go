@@ -148,7 +148,7 @@ func (b *balenaBackend) createToken(ctx context.Context, s logical.Storage, role
 
 	var token *balenaToken
 
-	token, err = createToken(ctx, client, balenaName, balenaDesc)
+	token, err = createToken(ctx, client, balenaName, balenaDesc, ttl)
 	if err != nil {
 		return nil, fmt.Errorf("error creating balena token: %w", err)
 	}
